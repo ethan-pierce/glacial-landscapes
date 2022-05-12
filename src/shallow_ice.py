@@ -7,9 +7,6 @@ Description goes here.
     sia = ShallowIce()
 '''
 
-import numpy as np
-from landlab import RasterModelGrid
-
 class ShallowIce:
     '''This class implements a numerical solution to the shallow ice approximation.
 
@@ -35,11 +32,7 @@ class ShallowIce:
 
         # Set up the grid
         self.grid = RasterModelGrid((Nx, Ny), (dx, dy))
-        self.Nx = Nx
-        self.Ny = Ny
-        self.dx = dx
-        self.dy = dy
-        
+
         # Initialize empty fields
         self.grid.add_empty('ice_thickness', at = 'node')
         self.grid.add_empty('bed_elevation', at = 'node')
@@ -51,8 +44,7 @@ class ShallowIce:
         self.calc_fluidity()
 
         # Simulation variables
-        self.time_elapsed = 0.0 # seconds
-        self.time_step = 0.0 # seconds
+        self.time_elapsed = 0.0
 
     def calc_fluidity(self):
         '''Calculate the fluidity of the ice.'''
@@ -66,13 +58,6 @@ class ShallowIce:
 
         # Update the ice surface elevation
         self.grid.at_node['ice_surface'][:] = self.grid.at_node['ice_thickness'][:] - self.grid.at_node['bed_elevation'][:]
-
-    def calc_time_step(self, CFL: float):
-        '''Estimate the stable time step from a CFL condition.'''
-        self.calc_flux()
-        self.divergence = self.grid.calc_flux_div_at_node('ice_flux')
-
-        self.time_step = (CFL * self.dx * self.dy) / np.max(self.divergence[:])
 
     def calc_flux(self):
         '''Calculate the ice flux at links between each grid cell.'''
@@ -132,14 +117,10 @@ class ShallowIce:
         self.divergence = self.grid.calc_flux_div_at_node('ice_flux')
 
         # Interpolate the mass balance at the midpoint
-        if updated_mass_balance != None:
+        if updated_mass_balance:
             startpoint_mass_balance = self.grid.at_node['mass_balance'][:].copy()
             endpoint_mass_balance = updated_mass_balance[:].copy()
             midpoint_mass_balance = (startpoint_mass_balance - endpoint_mass_balance) / 2
-        else:
-            startpoint_mass_balance = self.grid.at_node['mass_balance'][:].copy()
-            endpoint_mass_balance = self.grid.at_node['mass_balance'][:].copy()
-            midpoint_mass_balance = self.grid.at_node['mass_balance'][:].copy()
 
         # Calculate the time derivative of ice thickness at the beginning of the time step
         k1 = self.grid.at_node['mass_balance'] + self.divergence
