@@ -39,7 +39,7 @@ class ShallowIce:
         self.Ny = Ny
         self.dx = dx
         self.dy = dy
-        
+
         # Initialize empty fields
         self.grid.add_empty('ice_thickness', at = 'node')
         self.grid.add_empty('bed_elevation', at = 'node')
